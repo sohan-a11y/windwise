@@ -36,3 +36,7 @@ audit/
 .env*
 
 .vercel_python_packages/
+
+*.egg-info/
+build/
+dist/

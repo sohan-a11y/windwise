@@ -127,7 +127,7 @@ The static bundle is written to `frontend/dist`. To serve it from FastAPI, copy 
 
 ## Deployment
 
-- **Live application:** _added after the Vercel production deployment is verified._
+- **Live application:** <https://windwise-henna.vercel.app>
 - **Vercel:** `vercel.json` builds the React client as static output and routes `/api/*` to the
   FastAPI function in `api/index.py`. The SQLite snapshot is bundled with the function via
   `includeFiles`. Import the repository in Vercel, or run `npx vercel --prod` from the repo root.

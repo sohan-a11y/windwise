@@ -5,7 +5,7 @@ off. The demo is a historical January 2026 replay; say that explicitly in the fi
 
 - **Part 1 — client pitch:** 4:45 target, hard stop 5:00.
 - **Part 2 — technical review:** 4:45 target, hard stop 5:00.
-- **Live URL:** _added after the Vercel production deployment is verified._
+- **Live URL:** <https://windwise-henna.vercel.app>
 - **Repo:** <https://github.com/sohan-a11y/windwise>
 
 The narration below is written to be read at a calm ~145 words per minute. Timings are cues, not
