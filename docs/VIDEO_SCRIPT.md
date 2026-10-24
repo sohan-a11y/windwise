@@ -137,87 +137,69 @@ and the AI disclosure.
 
 ## Part 2 — technical review
 
-### Architecture (0:00–0:35)
+### Architecture & Next-Gen Power Systems Design (0:00–0:50)
 
-**Screen:** `docs/ARCHITECTURE.md` rendered on GitHub, or a simple architecture slide.
-
-**Narration:**
-
-> Windwise is a React 19 and TypeScript client, a FastAPI analytics service, and one committed
-> SQLite snapshot. There is no database server, no background worker, and no external call at
-> request time.
->
-> The same backend runs in Docker and as a Vercel Python function. The client is a static Vite
-> build. The snapshot is hashed at boot, so the numbers are reproducible.
-
-### Data and gates (0:35–1:25)
-
-**Screen:** Desk with the date and gate controls; then Snapshots.
+**Screen:** `docs/ARCHITECTURE.md` or Slide 7.
 
 **Narration:**
 
-> The data is two public Elexon datasets: FUELHH wind actuals and WINDFOR forecasts, January 2026.
-> 1,488 actual half-hours, 18,688 forecast rows, 256 snapshots.
+> Windwise is built to mirror production standards for a next-gen power systems startup: a React 19
+> client, an asynchronous FastAPI backend, and high-performance numerical and distributed systems.
 >
-> A gate is a cut-off on the day before delivery. N2EX closes at 09:50; EPEX GB at 09:20; EPEX GB
-> half-hourly at 15:30. For each delivery day we take the latest complete snapshot published
-> strictly before that cut-off. If the expected snapshot is missing, we fall back and flag it. The
-> 16 January EPEX HH case is the only fallback in the month.
+> On the frontend, we go well beyond CRUD: we built a 60 FPS HTML5 Canvas Grid Dispatch Topology Graph
+> that simulates electrical power flows, transmission bottlenecks, and thermal backup routing in real time,
+> paired with an interactive 3D isometric windscape.
+>
+> On the backend, we run an async lifespan architecture with strict Pydantic v2 validation contracts,
+> structured error models, and Prometheus-compatible observability.
 
-**Action:** switch gate from N2EX to EPEX HH and back; open Snapshots for 16 January if time allows.
+### Scientific Computing & Distributed Orchestration (0:50–1:50)
 
-### Calibration and bands (1:25–2:20)
-
-**Screen:** Method page, then Accuracy page.
+**Screen:** Desk page scrolling to Grid Topology Canvas and Monte Carlo simulation.
 
 **Narration:**
 
-> Calibration is one parameter: k equals total actual divided by total forecast, over complete
-> delivery days at or before D-2. Seven complete days are required, so 1–8 January are provisional
-> and calibration unlocks on the 9th.
+> For numerical and risk analytics, we leverage NumPy and SciPy. We fit continuous Kernel Density
+> Estimation curves and Skew-Normal parametric distributions to capture the heavy asymmetric over-forecast
+> tail (+1,840 MW bias). We compute balance-sheet risk metrics: Value at Risk at 95% and 99%, and
+> Conditional Value at Risk (Expected Shortfall).
 >
-> On 31 January, k is 0.861 from 29 days, or 696 hourly pairs. Calibrated expectation is k times the
-> forecast. No intercept, no wind-level slope, no separate model per gate.
->
-> Bands come from leave-one-day-out residuals. Each historical day is scored with a k estimated
-> without that day, so the band is not narrowed by in-sample fitting. The quantiles are empirical:
-> P10–P90 for the central 80%, P2.5–P97.5 for the central 95%, P20 and P10 for the one-sided firm
-> floors, and the minimum residual for stress.
+> For compute-intensive tasks, we orchestrated a multi-container Docker Compose stack featuring a
+> distributed Celery worker and Redis broker. Users can trigger 10,000-iteration Monte Carlo shortfall
+> simulations calculating Loss of Load Probability and Expected Energy Shortfall, backed by an async
+> polling API with graceful in-process serverless fallback.
 
-### Cover and the client (2:20–3:05)
+### Production LLM Copilot with RAG & Evals (1:50–2:40)
 
-**Screen:** Desk cover calculator; click a table row to focus an hour.
+**Screen:** Copilot Panel on the Desk page; show the AI Briefing and telemetry badge.
 
 **Narration:**
 
-> Cover is share times max of zero and forecast minus firm wind, floored at zero. MWh is the sum of
-> the 24 hourly MW values.
+> Rather than simple prompt prototypes, our AI Market Dispatch Copilot is built for production:
 >
-> The API returns the hourly book and the server-side summary. The client recomputes the same
-> formula for the slider so the interaction is instant. Both formulas are covered by tests. The
-> table lets a buyer click any hour and see it on the chart.
->
-> The UI is a light editorial system: custom SVG charts, a data-linked isometric windscape,
-> reduced-motion support, and a mobile layout down to 390 pixels.
+> First: Guaranteed structured outputs via strict Pydantic schemas—zero unparsed JSON.
+> Second: Local RAG grounded directly in Elexon BSC Market Rules, specifically Modification P305
+> cashout price penalties and REMIT market transparency.
+> Third: Full cost and latency telemetry: exact token counts, USD cost estimates, and an SHA-256
+> cryptographic prompt cache providing sub-5ms reflex responses.
+> Fourth: Real engineering rigour: an automated evaluation test suite verifying schema compliance,
+> grounding adherence, and latency SLAs under 500 ms.
 
-**Action:** click 00:00, then 12:00 in the hourly book; switch tier to Stress; return to 90%.
+### Engineering Rigour, Tests & Observability (2:40–3:30)
 
-### Engineering quality (3:05–3:50)
-
-**Screen:** GitHub Actions / terminal test output, or the Method page quality card.
+**Screen:** Terminal showing `pytest` (45 passed) and `npm test` (13 passed).
 
 **Narration:**
 
-> Thirty-seven backend tests cover gate selection, hourly matching, calibration timing, LODO bands,
-> cover arithmetic, API contracts, CSV exports, and no-look-ahead mutation cases. Thirteen frontend
-> tests cover URL canonicalisation and cover math. TypeScript is strict. CI runs the backend suite,
-> the frontend typecheck, tests, and a production build on every push.
+> Rigour is built-in: forty-five backend tests cover calibration math, scientific distributions,
+> distributed Celery jobs, LLM evaluations, and API contracts. Thirteen frontend tests cover route
+> canonicalisation and cover formulas.
 >
-> The API adds request IDs, security headers, gzip, structured errors, and a checksum-verified
-> health endpoint. The snapshot hash is checked at boot; a mismatch is reported as degraded, not
-> ignored.
+> We expose a Prometheus-compatible metrics endpoint at `/api/v1/metrics` tracking request latency
+> percentiles, error rates, and worker queue depths. Security headers, gzip, request correlation IDs,
+> and boot checksum verification are active.
 
-### Deployment (3:50–4:30)
+### Deployment & Containerisation (3:30–4:30)
 
 **Screen:** live Vercel URL, `/api/docs`, CSV download.
 

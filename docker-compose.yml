@@ -1,5 +1,5 @@
 services:
-  windwise:
+  web:
     build:
       context: .
       dockerfile: Dockerfile
@@ -9,6 +9,10 @@ services:
     environment:
       PORT: "8000"
       WINDWISE_STATIC_DIR: /app/backend/static
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      redis:
+        condition: service_healthy
     healthcheck:
       test:
         [
@@ -17,8 +21,30 @@ services:
           "-c",
           "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health', timeout=3)",
         ]
-      interval: 30s
+      interval: 15s
       timeout: 5s
-      start_period: 15s
+      start_period: 10s
       retries: 3
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    restart: unless-stopped
+
+  worker:
+    image: windwise:local
+    command: ["python", "-m", "celery", "-A", "app.tasks.celery_app", "worker", "--loglevel=info"]
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      WINDWISE_STATIC_DIR: /app/backend/static
+    depends_on:
+      redis:
+        condition: service_healthy
     restart: unless-stopped

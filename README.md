@@ -18,6 +18,22 @@ boot.
 
 ---
 
+## Technical Stack & Architecture Alignment
+
+Windwise is engineered to demonstrate the full spectrum of modern 0-to-1 power systems software engineering:
+
+| Competency Area | Production Implementation in Windwise | Source Reference |
+| :--- | :--- | :--- |
+| **Strong React & State** | React 19, TypeScript, complex state synchronization across URL query params, scenario modeling, zero-CRUD. | `frontend/src/pages/DeskPage.tsx` |
+| **Rich Interactive Canvas** | **60 FPS Canvas Grid Topology & Power Flow Visualizer** + 3D Isometric WebGL/Canvas Windscape. Interactive node dragging, transmission bottlenecks, live particle flow. | `DispatchFlowCanvas.tsx`, `Windscape.tsx` |
+| **Strong Python FastAPI** | Async lifespan architecture, strict Pydantic v2 schemas, GZip compression, request correlation IDs, versioned `/api/v1/` routes. | `backend/app/main.py` |
+| **Scientific Computing** | **NumPy & SciPy**: Continuous Kernel Density Estimation (KDE), Skew-Normal distribution fitting, Value at Risk ($VaR_{95}, VaR_{99}$), and Expected Shortfall ($CVaR_{95}$). | `backend/app/scientific.py` |
+| **Distributed Orchestration** | **Celery + Redis in Docker Compose**: Multi-container stack (`web`, `worker`, `redis`) executing 10,000-run Monte Carlo loss-of-load simulations with serverless async fallback. | `docker-compose.yml`, `tasks.py` |
+| **Production LLM Systems** | **AI Market Dispatch Copilot**: Strict Pydantic structured output, local RAG over Elexon BSC P305 rules, token & USD cost telemetry, SHA-256 prompt caching, and an automated evals test suite. | `backend/app/llm_copilot.py`, `test_llm_evals.py` |
+| **Observability & Rigour** | Prometheus-compatible & JSON metrics (`/api/v1/metrics`), latency percentiles, 58 automated tests (**45 pytest + 13 vitest**). | `backend/tests/`, `frontend/src/lib/` |
+
+---
+
 ## Why this exists
 
 A UK supplier with a share of national wind must decide, before a day-ahead gate, how much thermal

@@ -33,6 +33,8 @@ import {
 } from "../components/ui";
 import { Windscape } from "../components/Windscape";
 import { BandChart } from "../components/charts/BandChart";
+import { DispatchFlowCanvas } from "../components/charts/DispatchFlowCanvas";
+import { CopilotPanel } from "../components/CopilotPanel";
 import { Reveal } from "../components/Reveal";
 import type { HourRow } from "../types";
 
@@ -538,6 +540,27 @@ export function DeskPage({
           </table>
         </div>
       </Reveal>
+
+      {/* Next-Gen Power Systems Grid Dispatch & AI Copilot Suite */}
+      <section className="mt-8 space-y-6">
+        <Reveal>
+          <DispatchFlowCanvas
+            windMw={Math.round(data.national.forecast_average_mw * (route.share / 100))}
+            peakerMw={Math.round(coverSummary?.peakMw ?? 451)}
+            demandMw={Math.round(data.national.forecast_average_mw * (route.share / 100) * 0.95)}
+          />
+        </Reveal>
+
+        <Reveal>
+          <CopilotPanel
+            dateText={data.delivery_date}
+            gate={data.gate.id}
+            sharePct={route.share}
+            forecastMw={data.national.forecast_average_mw}
+            firmMw={data.national.firm_90_average_mw ?? 8326.0}
+          />
+        </Reveal>
+      </section>
 
       {/* outturn + decision point */}
       <section className="mt-5 grid gap-5 lg:grid-cols-12">
