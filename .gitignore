@@ -31,3 +31,8 @@ backend/static/
 # Local audit artefacts (screenshots, Playwright traces)
 audit/
 .playwright-mcp/
+
+.vercel
+.env*
+
+.vercel_python_packages/
