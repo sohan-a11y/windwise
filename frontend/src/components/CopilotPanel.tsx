@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { formatNumber } from "../lib/format";
+import { formatNumber, gwh, mw } from "../lib/format";
+import { Icon } from "./ui";
 
 interface CopilotBriefing {
   executive_summary: string;
@@ -91,7 +92,6 @@ export function CopilotPanel({
       });
       if (resp.ok) {
         const data = await resp.json();
-        // Poll job result
         const pollResp = await fetch(data.poll_url);
         if (pollResp.ok) {
           const jobData = await pollResp.json();
@@ -106,86 +106,97 @@ export function CopilotPanel({
   };
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white/95 p-5 shadow-sm backdrop-blur-sm">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
+    <div className="card p-6 sm:p-7">
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-ink-100/80 pb-5">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="flex h-6 w-6 items-center justify-center rounded-md bg-indigo-600 text-xs font-bold text-white">
-              AI
+          <div className="flex items-center gap-2.5">
+            <span className="chip chip-teal">
+              <Icon name="spark" size={12} />
+              AI Copilot & Evals
             </span>
-            <h3 className="font-serif text-lg font-semibold text-slate-900">
-              Power Systems Dispatch Copilot & Monte Carlo Engine
-            </h3>
+            <span className="label">Elexon BSC Grounded</span>
           </div>
-          <p className="text-xs text-slate-500">
-            Production LLM with strict Pydantic structured output, Elexon BSC RAG grounding, and Celery distributed simulation.
+          <h3 className="display mt-2 text-[clamp(1.5rem,2.2vw,1.9rem)] leading-tight text-ink">
+            Day-Ahead Dispatch Copilot & Risk Engine
+          </h3>
+          <p className="mt-1 text-xs text-ink-500">
+            Strict Pydantic structured output, local RAG over Elexon BSC P305 cashout rules, token & USD cost telemetry, and 10,000-run Monte Carlo shortfall simulation.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           <button
             type="button"
             onClick={fetchBriefing}
             disabled={loadingBriefing}
-            className="rounded-lg bg-indigo-600 px-3.5 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-indigo-700 disabled:opacity-50 transition-all"
+            className="btn-primary text-xs"
           >
-            {loadingBriefing ? "Synthesizing Briefing..." : briefing ? "Refresh AI Briefing" : "Generate Desk Briefing"}
+            {loadingBriefing ? "Synthesizing Briefing..." : briefing ? "Refresh Briefing" : "Generate Desk Briefing"}
           </button>
 
           <button
             type="button"
             onClick={runMonteCarlo}
             disabled={loadingMc}
-            className="rounded-lg border border-slate-300 bg-slate-50 px-3.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100 disabled:opacity-50 transition-all"
+            className="btn-ghost text-xs"
           >
-            {loadingMc ? "Running 10k Samples..." : "Run 10,000 Monte Carlo"}
+            {loadingMc ? "Simulating 10k Samples..." : "Run 10,000 Monte Carlo"}
           </button>
         </div>
       </div>
 
       {/* Briefing Output */}
       {briefing && (
-        <div className="mt-4 space-y-3 rounded-xl bg-indigo-50/40 p-4 border border-indigo-100/70">
-          <div className="flex items-center justify-between">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-semibold text-indigo-800">
-              Action: {briefing.recommendation.action.replace(/_/g, " ")}
-            </span>
+        <div className="mt-5 space-y-4 rounded-[22px] border border-teal-200/80 bg-teal-50/50 p-5 backdrop-blur-sm">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-teal-200/50 pb-3">
+            <div className="flex items-center gap-2">
+              <span className="chip chip-teal text-xs">
+                {briefing.recommendation.action.replace(/_/g, " ")}
+              </span>
+              <span className="label text-teal-800">
+                Confidence: {briefing.recommendation.confidence_level.replace(/_/g, " ")}
+              </span>
+            </div>
 
             {/* Token & Cost Telemetry */}
-            <div className="flex items-center gap-2 text-[11px] text-slate-500 font-mono">
+            <div className="flex items-center gap-2 text-[11px] text-ink-500 font-mono">
               <span>{briefing.telemetry.total_tokens} tokens</span>
-              <span>•</span>
+              <span className="text-ink-300">•</span>
               <span>${briefing.telemetry.estimated_cost_usd}</span>
-              <span>•</span>
+              <span className="text-ink-300">•</span>
               <span>{briefing.telemetry.latency_ms} ms</span>
               {briefing.telemetry.cache_hit && (
-                <span className="rounded bg-emerald-100 px-1.5 py-0.2 text-[10px] font-bold text-emerald-800">
+                <span className="chip chip-teal text-[9px] py-0.5 px-2">
                   CACHE HIT
                 </span>
               )}
             </div>
           </div>
 
-          <p className="text-xs leading-relaxed text-slate-700 font-sans">
+          <p className="font-sans text-sm leading-relaxed text-ink-800">
             {briefing.executive_summary}
           </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs pt-1">
-            <div className="rounded-lg bg-white p-3 border border-slate-200/80">
-              <span className="font-semibold text-slate-900 block mb-1">Key Operational Drivers</span>
-              <ul className="list-disc pl-4 space-y-1 text-slate-600">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+            <div className="card-flat p-4 bg-white/75">
+              <span className="label text-ink-700 block mb-2 font-medium">Key Operational Drivers</span>
+              <ul className="space-y-1.5 text-xs text-ink-600">
                 {briefing.key_risk_drivers.map((d, i) => (
-                  <li key={i}>{d}</li>
+                  <li key={i} className="flex items-start gap-1.5">
+                    <span className="text-teal-600 mt-0.5 font-bold">•</span>
+                    <span>{d}</span>
+                  </li>
                 ))}
               </ul>
             </div>
 
-            <div className="rounded-lg bg-white p-3 border border-slate-200/80">
-              <span className="font-semibold text-slate-900 block mb-1">Regulatory Evidence (Elexon BMRS)</span>
-              <ul className="space-y-1.5 text-slate-600">
+            <div className="card-flat p-4 bg-white/75">
+              <span className="label text-ink-700 block mb-2 font-medium">Regulatory Evidence (Elexon BMRS)</span>
+              <ul className="space-y-2 text-xs text-ink-600">
                 {briefing.regulatory_context.map((r, i) => (
-                  <li key={i}>
-                    <strong className="text-slate-800 font-mono text-[11px]">{r.rule_code}:</strong> {r.impact_rationale}
+                  <li key={i} className="border-b border-ink-100/60 pb-1.5 last:border-0 last:pb-0">
+                    <span className="font-mono font-semibold text-ink-800">{r.rule_code}:</span>{" "}
+                    <span className="text-ink-600">{r.impact_rationale}</span>
                   </li>
                 ))}
               </ul>
@@ -196,32 +207,46 @@ export function CopilotPanel({
 
       {/* Monte Carlo Results */}
       {mcResult && (
-        <div className="mt-4 rounded-xl bg-amber-50/40 p-4 border border-amber-100/70">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-amber-900">
-              Distributed Monte Carlo Simulation ({formatNumber(mcResult.iterations)} iterations)
-            </span>
-            <span className="font-mono text-[11px] text-amber-700">
-              Loss of Load Probability: {(mcResult.loss_of_load_probability * 100).toFixed(1)}%
-            </span>
+        <div className="mt-5 card-ink p-5 sm:p-6">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-4">
+            <div>
+              <div className="label-light">Distributed Task Worker Result</div>
+              <h4 className="display mt-1 text-xl text-paper">
+                Monte Carlo Reserve Adequacy ({formatNumber(mcResult.iterations)} iterations)
+              </h4>
+            </div>
+            <div className="text-right">
+              <div className="num text-2xl text-teal-300">
+                {(mcResult.loss_of_load_probability * 100).toFixed(1)}%
+              </div>
+              <div className="label-light text-[9px]">Loss of Load Probability</div>
+            </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 text-xs md:grid-cols-4">
-            <div className="rounded bg-white p-2 border border-slate-200">
-              <span className="text-slate-500 text-[10px]">P95 Peaker Call</span>
-              <div className="font-mono font-bold text-slate-900">{formatNumber(mcResult.p95_peaker_call_mw)} MW</div>
+          <div className="mt-4 grid grid-cols-2 gap-3 text-xs md:grid-cols-4">
+            <div className="rounded-xl bg-white/5 p-3 border border-white/10">
+              <span className="label-light text-[9px]">P95 Peaker Call</span>
+              <div className="num mt-1 text-base font-semibold text-paper">
+                {mw(mcResult.p95_peaker_call_mw)}
+              </div>
             </div>
-            <div className="rounded bg-white p-2 border border-slate-200">
-              <span className="text-slate-500 text-[10px]">P99 Peaker Call</span>
-              <div className="font-mono font-bold text-slate-900">{formatNumber(mcResult.p99_peaker_call_mw)} MW</div>
+            <div className="rounded-xl bg-white/5 p-3 border border-white/10">
+              <span className="label-light text-[9px]">P99 Peaker Call</span>
+              <div className="num mt-1 text-base font-semibold text-paper">
+                {mw(mcResult.p99_peaker_call_mw)}
+              </div>
             </div>
-            <div className="rounded bg-white p-2 border border-slate-200">
-              <span className="text-slate-500 text-[10px]">Expected Shortfall (EENS)</span>
-              <div className="font-mono font-bold text-slate-900">{formatNumber(mcResult.expected_energy_unserved_mwh)} MWh</div>
+            <div className="rounded-xl bg-white/5 p-3 border border-white/10">
+              <span className="label-light text-[9px]">Expected Shortfall (EENS)</span>
+              <div className="num mt-1 text-base font-semibold text-paper">
+                {gwh(mcResult.expected_energy_unserved_mwh)}
+              </div>
             </div>
-            <div className="rounded bg-white p-2 border border-slate-200">
-              <span className="text-slate-500 text-[10px]">Maximum Single Event</span>
-              <div className="font-mono font-bold text-slate-900">{formatNumber(mcResult.max_shortfall_mw)} MW</div>
+            <div className="rounded-xl bg-white/5 p-3 border border-white/10">
+              <span className="label-light text-[9px]">Max Tail Event</span>
+              <div className="num mt-1 text-base font-semibold text-paper">
+                {mw(mcResult.max_shortfall_mw)}
+              </div>
             </div>
           </div>
         </div>

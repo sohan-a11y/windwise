@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { formatNumber } from "../../lib/format";
+import { formatNumber, mw } from "../../lib/format";
+import { Icon } from "../ui";
 
 interface Node {
   id: string;
@@ -45,16 +46,17 @@ export function DispatchFlowCanvas({
   const currentPeaker = simulatedShortfall ? Math.round(peakerMw + windMw * 0.4) : peakerMw;
   const currentDelivered = currentWind + currentPeaker;
 
-  // Nodes definition
+  // Nodes definition matching Windwise palette
+  // Teal: #0e7c6b, Ink: #0e2a2b, Coral: #d96a53, Ocean: #1e4e50, Sand: #8a6d3b
   const nodesRef = useRef<Node[]>([
     {
       id: "wind",
       label: "National Wind Fleet",
       type: "wind",
-      x: 120,
-      y: 90,
+      x: 125,
+      y: 95,
       radius: 28,
-      color: "#059669",
+      color: "#0e7c6b",
       mw: currentWind,
       subtitle: "Offshore/Onshore (Elexon)",
     },
@@ -62,54 +64,54 @@ export function DispatchFlowCanvas({
       id: "peaker",
       label: "Thermal Peakers",
       type: "peaker",
-      x: 120,
-      y: 270,
+      x: 125,
+      y: 275,
       radius: 24,
-      color: "#d97706",
+      color: "#d96a53",
       mw: currentPeaker,
       subtitle: "CCGT/OCGT Fast Reserve",
     },
     {
       id: "substation",
-      label: "Grid Substation",
+      label: "Supergrid Substation",
       type: "substation",
-      x: 350,
-      y: 180,
+      x: 360,
+      y: 185,
       radius: 30,
-      color: "#2563eb",
+      color: "#0e2a2b",
       mw: currentDelivered,
-      subtitle: "400kV Supergrid Hub",
+      subtitle: "400kV National Grid Hub",
     },
     {
       id: "market",
       label: "Day-Ahead Clearing",
       type: "market",
-      x: 570,
-      y: 110,
+      x: 585,
+      y: 105,
       radius: 26,
-      color: "#7c3aed",
+      color: "#1e4e50",
       mw: currentWind,
-      subtitle: "N2EX 09:50 Auction",
+      subtitle: "N2EX 09:50 Gate Auction",
     },
     {
       id: "demand",
       label: "Consumer Demand",
       type: "demand",
-      x: 580,
-      y: 260,
+      x: 595,
+      y: 265,
       radius: 28,
-      color: "#dc2626",
+      color: "#8a6d3b",
       mw: demandMw,
-      subtitle: "Utility Consumers Sink",
+      subtitle: "Supplier Delivery Sink",
     },
   ]);
 
   // Edges definition
   const edges: Edge[] = [
-    { from: "wind", to: "substation", mw: currentWind, capacityMw: 20000, color: "#10b981" },
-    { from: "peaker", to: "substation", mw: currentPeaker, capacityMw: 8000, color: "#f59e0b" },
-    { from: "substation", to: "market", mw: currentWind, capacityMw: 18000, color: "#8b5cf6" },
-    { from: "substation", to: "demand", mw: currentDelivered, capacityMw: 25000, color: "#ef4444" },
+    { from: "wind", to: "substation", mw: currentWind, capacityMw: 20000, color: "#0e7c6b" },
+    { from: "peaker", to: "substation", mw: currentPeaker, capacityMw: 8000, color: "#d96a53" },
+    { from: "substation", to: "market", mw: currentWind, capacityMw: 18000, color: "#1e4e50" },
+    { from: "substation", to: "demand", mw: currentDelivered, capacityMw: 25000, color: "#8a6d3b" },
   ];
 
   // Particles animation state
@@ -117,16 +119,14 @@ export function DispatchFlowCanvas({
     Array.from({ length: 32 }, (_, i) => ({
       edgeIdx: i % edges.length,
       progress: (i / 32) * 1.0,
-      speed: 0.004 + (i % 3) * 0.002,
+      speed: 0.0035 + (i % 3) * 0.002,
     }))
   );
 
-  // Dragging state
   const dragNodeRef = useRef<Node | null>(null);
   const dragOffsetRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
 
   useEffect(() => {
-    // Update node dynamic MW
     nodesRef.current.forEach((n) => {
       if (n.id === "wind") n.mw = currentWind;
       if (n.id === "peaker") n.mw = currentPeaker;
@@ -147,10 +147,10 @@ export function DispatchFlowCanvas({
     const render = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Subtle background grid
-      ctx.strokeStyle = "rgba(0, 0, 0, 0.04)";
+      // Subtle editorial grid background
+      ctx.strokeStyle = "rgba(14, 42, 43, 0.035)";
       ctx.lineWidth = 1;
-      const gridSize = 25;
+      const gridSize = 28;
       for (let x = 0; x < canvas.width; x += gridSize) {
         ctx.beginPath();
         ctx.moveTo(x, 0);
@@ -170,29 +170,29 @@ export function DispatchFlowCanvas({
         const toNode = nodesRef.current.find((n) => n.id === edge.to);
         if (!fromNode || !toNode) return;
 
-        // Line
+        // Base structural line
         ctx.beginPath();
         ctx.moveTo(fromNode.x, fromNode.y);
         ctx.lineTo(toNode.x, toNode.y);
-        ctx.strokeStyle = "rgba(203, 213, 225, 0.7)";
-        ctx.lineWidth = 3;
+        ctx.strokeStyle = "rgba(14, 42, 43, 0.12)";
+        ctx.lineWidth = 2.5;
         ctx.stroke();
 
-        // Active power flow glow line
+        // Active flow line
         ctx.beginPath();
         ctx.moveTo(fromNode.x, fromNode.y);
         ctx.lineTo(toNode.x, toNode.y);
         ctx.strokeStyle = edge.color;
-        ctx.globalAlpha = 0.4;
-        ctx.lineWidth = Math.min(8, Math.max(2, (edge.mw / edge.capacityMw) * 8));
+        ctx.globalAlpha = 0.35;
+        ctx.lineWidth = Math.min(7, Math.max(2, (edge.mw / edge.capacityMw) * 7));
         ctx.stroke();
         ctx.globalAlpha = 1.0;
 
-        // Midpoint power label
+        // Midpoint power readout
         const midX = (fromNode.x + toNode.x) / 2;
         const midY = (fromNode.y + toNode.y) / 2;
-        ctx.fillStyle = "#475569";
-        ctx.font = "10px IBM Plex Mono, monospace";
+        ctx.fillStyle = "#2b5a5c";
+        ctx.font = "10px 'IBM Plex Mono', monospace";
         ctx.textAlign = "center";
         ctx.fillText(`${formatNumber(edge.mw)} MW`, midX, midY - 6);
       });
@@ -221,36 +221,37 @@ export function DispatchFlowCanvas({
 
       // Draw Nodes
       nodesRef.current.forEach((node) => {
-        // Outer halo
+        // Outer ambient glow ring
         ctx.beginPath();
-        ctx.arc(node.x, node.y, node.radius + 4, 0, Math.PI * 2);
-        ctx.fillStyle = `${node.color}18`;
+        ctx.arc(node.x, node.y, node.radius + 5, 0, Math.PI * 2);
+        ctx.fillStyle = `${node.color}22`;
         ctx.fill();
 
-        // Main Node Body
+        // Main node circle
         ctx.beginPath();
         ctx.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
         ctx.fillStyle = node.color;
-        ctx.shadowColor = "rgba(0, 0, 0, 0.15)";
-        ctx.shadowBlur = 8;
+        ctx.shadowColor = "rgba(14, 42, 43, 0.12)";
+        ctx.shadowBlur = 6;
         ctx.fill();
         ctx.shadowBlur = 0;
 
         // Inner core
         ctx.beginPath();
-        ctx.arc(node.x, node.y, node.radius * 0.45, 0, Math.PI * 2);
-        ctx.fillStyle = "#ffffff";
+        ctx.arc(node.x, node.y, node.radius * 0.42, 0, Math.PI * 2);
+        ctx.fillStyle = "#f3f6f1";
         ctx.fill();
 
-        // Node Labels
-        ctx.fillStyle = "#0f172a";
-        ctx.font = "bold 11px Instrument Sans, sans-serif";
+        // Node label
+        ctx.fillStyle = "#0e2a2b";
+        ctx.font = "600 11px 'Instrument Sans', sans-serif";
         ctx.textAlign = "center";
-        ctx.fillText(node.label, node.x, node.y + node.radius + 14);
+        ctx.fillText(node.label, node.x, node.y + node.radius + 15);
 
-        ctx.fillStyle = "#64748b";
-        ctx.font = "10px IBM Plex Mono, monospace";
-        ctx.fillText(`${formatNumber(node.mw)} MW`, node.x, node.y + node.radius + 26);
+        // Subtitle MW
+        ctx.fillStyle = "#527576";
+        ctx.font = "10px 'IBM Plex Mono', monospace";
+        ctx.fillText(`${formatNumber(node.mw)} MW`, node.x, node.y + node.radius + 28);
       });
 
       animId = requestAnimationFrame(render);
@@ -258,7 +259,7 @@ export function DispatchFlowCanvas({
 
     render();
 
-    // Mouse handlers for dragging & hover
+    // Mouse handlers
     const handleMouseDown = (e: MouseEvent) => {
       const rect = canvas.getBoundingClientRect();
       const mouseX = e.clientX - rect.left;
@@ -309,17 +310,21 @@ export function DispatchFlowCanvas({
   }, [edges]);
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white/90 p-5 shadow-sm backdrop-blur-sm">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
+    <div className="card p-6 sm:p-7">
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-ink-100/80 pb-5">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="inline-block h-2.5 w-2.5 animate-pulse rounded-full bg-emerald-500" />
-            <h3 className="font-serif text-lg font-semibold text-slate-900">
-              Interactive Grid Topology & Power Dispatch Flow
-            </h3>
+          <div className="flex items-center gap-2.5">
+            <span className="chip chip-teal">
+              <Icon name="spark" size={12} />
+              60 FPS Canvas
+            </span>
+            <span className="label">Grid Topology Visualizer</span>
           </div>
-          <p className="text-xs text-slate-500">
-            60 FPS HTML5 Canvas power flow simulation. Click and drag nodes to test transmission topology.
+          <h3 className="display mt-2 text-[clamp(1.5rem,2.2vw,1.9rem)] leading-tight text-ink">
+            Power Flow & Thermal Re-Dispatch
+          </h3>
+          <p className="mt-1 text-xs text-ink-500">
+            Interactive system topology. Drag nodes to inspect transmission bottlenecks, line capacity, and real-time shortfall routing.
           </p>
         </div>
 
@@ -327,11 +332,7 @@ export function DispatchFlowCanvas({
           <button
             type="button"
             onClick={() => setSimulatedShortfall(!simulatedShortfall)}
-            className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
-              simulatedShortfall
-                ? "bg-amber-600 text-white shadow-sm hover:bg-amber-700"
-                : "border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"
-            }`}
+            className={simulatedShortfall ? "btn-teal text-xs" : "btn-ghost text-xs"}
           >
             {simulatedShortfall ? "Reset Grid Nominal" : "Simulate 40% Wind Lull"}
           </button>
@@ -339,47 +340,47 @@ export function DispatchFlowCanvas({
       </div>
 
       {/* Real-time KPI Ribbon */}
-      <div className="mt-3 grid grid-cols-2 gap-2 text-xs md:grid-cols-4">
-        <div className="rounded-lg bg-emerald-50/60 p-2 border border-emerald-100">
-          <span className="text-emerald-700 font-medium">Renewable Generation</span>
-          <div className="font-mono text-sm font-semibold text-emerald-950">
-            {formatNumber(currentWind)} MW
+      <div className="mt-5 grid grid-cols-2 gap-3 text-xs md:grid-cols-4">
+        <div className="card-flat p-3.5">
+          <span className="label text-teal-800">Renewable Flow</span>
+          <div className="num mt-1 text-base font-semibold text-teal-900">
+            {mw(currentWind)}
           </div>
         </div>
-        <div className="rounded-lg bg-amber-50/60 p-2 border border-amber-100">
-          <span className="text-amber-700 font-medium">Thermal Peaker Call</span>
-          <div className="font-mono text-sm font-semibold text-amber-950">
-            {formatNumber(currentPeaker)} MW
+        <div className="card-flat p-3.5">
+          <span className="label text-coral-600">Thermal Peaker Call</span>
+          <div className="num mt-1 text-base font-semibold text-coral-700">
+            {mw(currentPeaker)}
           </div>
         </div>
-        <div className="rounded-lg bg-blue-50/60 p-2 border border-blue-100">
-          <span className="text-blue-700 font-medium">Delivered to Grid</span>
-          <div className="font-mono text-sm font-semibold text-blue-950">
-            {formatNumber(currentDelivered)} MW
+        <div className="card-flat p-3.5">
+          <span className="label text-ink-500">Delivered to Grid</span>
+          <div className="num mt-1 text-base font-semibold text-ink">
+            {mw(currentDelivered)}
           </div>
         </div>
-        <div className="rounded-lg bg-purple-50/60 p-2 border border-purple-100">
-          <span className="text-purple-700 font-medium">Grid Frequency</span>
-          <div className="font-mono text-sm font-semibold text-purple-950">50.02 Hz</div>
+        <div className="card-flat p-3.5">
+          <span className="label text-sand-700">Grid Frequency</span>
+          <div className="num mt-1 text-base font-semibold text-ink-800">50.02 Hz</div>
         </div>
       </div>
 
       {/* Canvas rendering area */}
-      <div className="relative mt-3 overflow-hidden rounded-xl border border-slate-200 bg-slate-50/50">
+      <div className="relative mt-4 overflow-hidden rounded-[20px] border border-ink-100/80 bg-paper/60 backdrop-blur">
         <canvas
           ref={canvasRef}
-          width={720}
-          height={340}
+          width={740}
+          height={360}
           className="w-full max-w-full block"
         />
 
         {activeNode && (
-          <div className="absolute bottom-2 left-2 rounded-lg border border-slate-200 bg-white/95 px-3 py-1.5 shadow-sm text-xs backdrop-blur-sm">
-            <span className="font-semibold text-slate-900">{activeNode.label}</span>
-            <span className="text-slate-400 mx-1.5">•</span>
-            <span className="font-mono font-medium text-slate-700">{formatNumber(activeNode.mw)} MW</span>
-            <span className="text-slate-400 mx-1.5">•</span>
-            <span className="text-slate-500 italic">{activeNode.subtitle}</span>
+          <div className="chart-tooltip bottom-3 left-3 w-auto min-w-[200px]">
+            <div className="font-sans text-xs font-semibold text-paper">{activeNode.label}</div>
+            <div className="mt-1 flex items-baseline gap-2">
+              <span className="num text-sm text-teal-300">{formatNumber(activeNode.mw)} MW</span>
+              <span className="font-mono text-[10px] text-paper/60">{activeNode.subtitle}</span>
+            </div>
           </div>
         )}
       </div>
