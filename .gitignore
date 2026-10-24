@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+htmlcov/
+.coverage
+
+# Node
+node_modules/
+frontend/dist/
+frontend/.vite/
+*.tsbuildinfo
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Deployment / OS
+.vercel
+.DS_Store
+Thumbs.db
+*.log
+
+# Runtime static build (Docker copies it in)
+backend/static/
+
+# Local audit artefacts (screenshots, Playwright traces)
+audit/
+.playwright-mcp/

@@ -1,0 +1,60 @@
+{
+  "product": "Windwise",
+  "snapshot_version": 1,
+  "generated_at_utc": "2026-10-23T11:55:52+00:00",
+  "database": "windwise.sqlite",
+  "database_bytes": 2568192,
+  "sha256": "b992913db1eb2af9eb192412719fb3a2e5ea13904671a5594fa976f51a1079c4",
+  "delivery_window": {
+    "start": "2026-01-01",
+    "end": "2026-01-31"
+  },
+  "sources": {
+    "actuals": {
+      "dataset": "FUELHH",
+      "filter": "fuelType=WIND",
+      "endpoint": "https://data.elexon.co.uk/bmrs/api/v1/datasets/FUELHH",
+      "documentation": "https://bmrs.elexon.co.uk/api-documentation/endpoint/datasets/FUELHH/stream"
+    },
+    "forecasts": {
+      "dataset": "WINDFOR",
+      "endpoint": "https://data.elexon.co.uk/bmrs/api/v1/datasets/WINDFOR",
+      "documentation": "https://bmrs.elexon.co.uk/api-documentation/endpoint/datasets/WINDFOR/stream"
+    }
+  },
+  "counts": {
+    "actual_half_hours": 1488,
+    "actual_delivery_days": 31,
+    "forecast_rows": 18688,
+    "forecast_snapshots": 256
+  },
+  "ranges_mw": {
+    "actual": {
+      "min": 1695.0,
+      "max": 17805.0
+    },
+    "forecast": {
+      "min": 2250.0,
+      "max": 21353.0
+    }
+  },
+  "gate_coverage": {
+    "n2ex_0950": {
+      "days_with_cover": 31,
+      "fallbacks": []
+    },
+    "epex_0920": {
+      "days_with_cover": 31,
+      "fallbacks": []
+    },
+    "epex_hh_1530": {
+      "days_with_cover": 31,
+      "fallbacks": []
+    }
+  },
+  "notes": [
+    "Only FUELHH WIND and WINDFOR are used.",
+    "Settlement days in January are GMT, so UTC and local delivery time coincide.",
+    "The database is deterministic for a fixed payload but SQLite file bytes may vary across versions."
+  ]
+}
